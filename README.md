@@ -5,7 +5,7 @@ This plugin is able to gather metrics from Intel NVDIMMs related infrastructure.
 1. [Getting Started](#getting-started)
   * [System Requirements](#system-requirements)
   * [Installation](#installation)
-  * [Configuration and Usage](configuration-and-usage)
+  * [Configuration and Usage](#configuration-and-usage)
 2. [Documentation](#documentation)
   * [Collected Metrics](#collected-metrics)
   * [Roadmap](#roadmap)
