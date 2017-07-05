@@ -25,34 +25,5 @@ import (
 )
 
 func main() {
-	//nv := nvdimm.NvdimmCollector{}
-	//                            METADATA            COLLECTOR    SOMETHING
-
 	plugin.StartCollector(nvdimm.NewCollector(), nvdimm.PluginName, nvdimm.Version)
-
-	//var namespaces []plugin.Namespace
-	//var collectedMetrics []plugin.Metric
-
-	//	nvdimmCollector := nvdimm.NewCollector()
-	//	nvdimmCollector.DiscoverDevices()
-	/*	namespaces = append(namespaces, plugin.NewNamespace("intel", "nvdimm", "nvdimm", "*", "device_capacity"))
-			namespaces = append(namespaces, plugin.NewNamespace("intel", "nvdimm", "nvdimm", "*", "channel_pos"))
-			namespaces = append(namespaces, plugin.NewNamespace("intel", "nvdimm", "nvdimm", "*", "spare_capacity"))
-		    namespaces = append(namespaces, plugin.NewNamespace("intel", "nvdimm", "nvdimm", "*", "wear_level"))
-		    namespaces = append(namespaces, plugin.NewNamespace("intel", "nvdimm", "nvdimm", "*", "media_errors_uncorrectable"))
-		    namespaces = append(namespaces, plugin.NewNamespace("intel", "nvdimm", "nvdimm", "*", "media_errors_corrected"))*/
-	/*    namespaces = append(namespaces, plugin.NewNamespace("intel", "nvdimm", "nvdimm", "*", "volatile_capacity"))
-	      namespaces = append(namespaces, plugin.NewNamespace("intel", "nvdimm", "nvdimm", "*", "persistent_capacity"))
-	      namespaces = append(namespaces, plugin.NewNamespace("intel", "nvdimm", "nvdimm", "*", "unconfigured_capacity"))
-	      namespaces = append(namespaces, plugin.NewNamespace("intel", "nvdimm", "nvdimm", "*", "inaccessible_capacity"))
-	      namespaces = append(namespaces, plugin.NewNamespace("intel", "nvdimm", "nvdimm", "*", "reserved_capacity"))
-	*/
-	//    collectedMetrics := nvdimmCollector.GetNvdimmMetrics(namespaces)
-	//    fmt.Printf("CollectedMetrics size = %d \n", len(collectedMetrics))
-	//    fmt.Printf("%s\n", collectedMetrics[0].Namespace.String())
-
-	/*	for _, met := range collectedMetrics {
-	    fmt.Print(met.Namespace.String(), " ")
-	    fmt.Println(met.Data)
-	}*/
 }
