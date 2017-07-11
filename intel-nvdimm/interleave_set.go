@@ -20,15 +20,14 @@ limitations under the License.
 package nvdimm
 
 import (
-	"fmt"
 	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
-	//	"unsafe"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // #cgo LDFLAGS: -L/lib64 -lixpdimm
 // #include <nvm_management.h>
 // #include <nvm_types.h>
-// #include <nvm_context.h>
 import "C"
 
 var interleaveLabels = map[string]label{
@@ -60,37 +59,25 @@ var interleaveLabels = map[string]label{
 
 //Main function for getting metrics from Pool
 func (p *Pool) getInterleavesetMetric(nss []plugin.Namespace) []plugin.Metric {
-
-	amountPool := int(p.AmountPool)
 	metric := plugin.Metric{}
 	metrics := []plugin.Metric{}
 
 	for _, ns := range nss {
 		metricName := ns.Element(len(ns) - 1).Value
-		//For all uid
 		if ns[3].Value == "*" {
-			for i := 0; i < amountPool; i++ {
-
-				newNS := make([]plugin.NamespaceElement, len(ns))
-				copy(newNS, ns)
-				newNS[3].Value = C.GoString(&p.ArrayPools[i].pool_uid[0])
+			for i, array := range p.ArrayPools {
+				newNS := plugin.CopyNamespace(ns)
+				newNS[3].Value = C.GoString(&array.pool_uid[0])
 
 				metric = p.getInterleavesetValueOfProperty(i, metricName, newNS)
-				fmt.Println(metric.Namespace)
-				fmt.Println(metric.Data)
 				metrics = append(metrics, metric)
 			}
-
 		} else { //For specific uid
-			newNS := make([]plugin.NamespaceElement, len(ns))
-			copy(newNS, ns)
-
+            newNS := plugin.CopyNamespace(ns)
 			//Check where in ArrayPools is requested UID
-			for i := 0; i < amountPool; i++ {
-				if ns[3].Value == C.GoString(&p.ArrayPools[i].pool_uid[0]) {
+            for i, pool := range p.ArrayPools {
+				if ns[3].Value == C.GoString(&pool.pool_uid[0]) {
 					metric = p.getInterleavesetValueOfProperty(i, metricName, newNS)
-					fmt.Println(metric.Namespace)
-					fmt.Println(metric.Data)
 					metrics = append(metrics, metric)
 				}
 			}
@@ -100,7 +87,6 @@ func (p *Pool) getInterleavesetMetric(nss []plugin.Namespace) []plugin.Metric {
 }
 
 func (p *Pool) getInterleavesetValueOfProperty(i int, metricName string, ns []plugin.NamespaceElement) plugin.Metric {
-
 	var v uint
 	var v64 C.NVM_UINT64
 
@@ -144,7 +130,6 @@ func (p *Pool) getInterleavesetValueOfProperty(i int, metricName string, ns []pl
 		return metric
 	case "encryption_status":
 		vEnum := EncryptionString(int(p.ArrayPools[i].ilsets[0].encryption)).String()
-		fmt.Println(vEnum)
 		metric := plugin.Metric{
 			Namespace: ns,
 			Data:      vEnum,
@@ -152,7 +137,7 @@ func (p *Pool) getInterleavesetValueOfProperty(i int, metricName string, ns []pl
 		return metric
 
 	default:
-		fmt.Println("No exist metric")
+		log.Debug("No exist metric")
 		metric := plugin.Metric{}
 		return metric
 	}

@@ -20,15 +20,16 @@ limitations under the License.
 package nvdimm
 
 import (
-	"fmt"
-	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
 	"unsafe"
+	
+	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
+	
+	log "github.com/sirupsen/logrus"
 )
 
 // #cgo LDFLAGS: -L/lib64 -lixpdimm
 // #include <nvm_management.h>
 // #include <nvm_types.h>
-// #include <nvm_context.h>
 import "C"
 
 var poolLabels = map[string]label{
@@ -66,13 +67,11 @@ type Pool struct {
 
 //Fill structs for Pool and Interleave_set
 func (p *Pool) DiscoveryPool() {
-	//C.nvm_create_context()
 	p.AmountPool = C.nvm_get_pool_count()
-
-	if p.AmountPool < 0 {
-		fmt.Printf("Error: not found pool\n")
+	if p.AmountPool <= 0 {
+		logError(int(p.AmountPool))
 	} else {
-		p.ArrayPools = make([]C.struct_pool, p.AmountPool) //Allocate memory on array of pools
+		p.ArrayPools = make([]C.struct_pool, p.AmountPool) // Allocate memory on array of pools
 		arrayPools_ptr := (*C.struct_pool)(unsafe.Pointer(&p.ArrayPools[0]))
 		C.nvm_get_pools(arrayPools_ptr, C.NVM_UINT8(p.AmountPool))
 	}
@@ -80,37 +79,25 @@ func (p *Pool) DiscoveryPool() {
 
 //Main function for getting metrics from Pool
 func (p *Pool) getPoolMetric(nss []plugin.Namespace) []plugin.Metric {
-
-	amountPool := int(p.AmountPool)
 	metric := plugin.Metric{}
 	metrics := []plugin.Metric{}
 
 	for _, ns := range nss {
 		metricName := ns.Element(len(ns) - 1).Value
-		//For all uid
-		if ns[3].Value == "*" {
-			for i := 0; i < amountPool; i++ {
-
-				newNS := make([]plugin.NamespaceElement, len(ns))
-				copy(newNS, ns)
-				newNS[3].Value = C.GoString(&p.ArrayPools[i].pool_uid[0])
+		if ns[3].Value == "*" { // For all uid
+            for i, array := range p.ArrayPools {
+                newNS := plugin.CopyNamespace(ns)
+				newNS[3].Value = C.GoString(&array.pool_uid[0])
 
 				metric = p.getPoolValueOfProperty(i, metricName, newNS)
-				fmt.Println(metric.Namespace)
-				fmt.Println(metric.Data)
 				metrics = append(metrics, metric)
 			}
-
-		} else { //For specific uid
-			newNS := make([]plugin.NamespaceElement, len(ns))
-			copy(newNS, ns)
-
+		} else { // For specific uid
+            newNS := plugin.CopyNamespace(ns)
 			//Check where in ArrayPools is requested UID
-			for i := 0; i < amountPool; i++ {
-				if ns[3].Value == C.GoString(&p.ArrayPools[i].pool_uid[0]) {
+			for i, array := range p.ArrayPools {
+				if ns[3].Value == C.GoString(&array.pool_uid[0]) {
 					metric = p.getPoolValueOfProperty(i, metricName, newNS)
-					fmt.Println(metric.Namespace)
-					fmt.Println(metric.Data)
 					metrics = append(metrics, metric)
 				}
 			}
@@ -120,14 +107,13 @@ func (p *Pool) getPoolMetric(nss []plugin.Namespace) []plugin.Metric {
 }
 
 func (p *Pool) getPoolValueOfProperty(i int, metricName string, ns []plugin.NamespaceElement) plugin.Metric {
-
 	var v uint
 	var v16I C.NVM_INT16
 	var v16 C.NVM_UINT16
 	var v64 C.NVM_UINT64
 
 	switch metricName {
-	case "capacity": //Metrics for Pool
+	case "capacity": // Metrics for Pool
 		v64 = p.ArrayPools[i].capacity
 		v = uint(v64)
 		metric := plugin.Metric{
@@ -175,7 +161,7 @@ func (p *Pool) getPoolValueOfProperty(i int, metricName string, ns []plugin.Name
 		}
 		return metric
 	default:
-		fmt.Println("No exist metric")
+		log.Debug("No exist metric")
 		metric := plugin.Metric{}
 		return metric
 	}

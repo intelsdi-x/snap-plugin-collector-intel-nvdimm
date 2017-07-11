@@ -20,15 +20,12 @@ limitations under the License.
 package nvdimm
 
 import (
-	"fmt"
 	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
-	"strconv"
 )
 
 // #cgo LDFLAGS: -L/lib64 -lixpdimm
 // #include <nvm_management.h>
 // #include <nvm_types.h>
-// #include <nvm_context.h>
 import "C"
 
 type label struct {
@@ -60,13 +57,11 @@ func NewCollector() *NvdimmCollector {
 }
 
 func (nc *NvdimmCollector) CollectMetrics(mts []plugin.Metric) ([]plugin.Metric, error) {
-	nvdimm_ns := []plugin.Namespace{}
-	pool_ns := []plugin.Namespace{}
-	namespace_ns := []plugin.Namespace{}
+    metrics     := []plugin.Metric{}
+	nvdimm_ns   := []plugin.Namespace{}
+	pool_ns     := []plugin.Namespace{}
+	namespace_ns      := []plugin.Namespace{}
 	interleave_set_ns := []plugin.Namespace{}
-
-	metrics := []plugin.Metric{}
-	// TODO: Handle errors here
 
 	// Insert metrics that will be collected
 	for _, metric := range mts {
@@ -105,7 +100,6 @@ func (nc *NvdimmCollector) CollectMetrics(mts []plugin.Metric) ([]plugin.Metric,
 
 func (NvdimmCollector) GetConfigPolicy() (plugin.ConfigPolicy, error) {
 	policy := plugin.NewConfigPolicy()
-
 	return *policy, nil
 }
 
@@ -116,7 +110,6 @@ func (NvdimmCollector) GetMetricTypes(cfg plugin.Config) ([]plugin.Metric, error
 			Namespace:   plugin.NewNamespace("intel", "nvdimm", "nvdimm").AddDynamicElement("DimmUID", "Device UID").AddStaticElement(name),
 			Description: "dynamic NVDIMM metric: " + name,
 			Unit:        label.unit,
-			Version:     1,
 		}
 		metrics = append(metrics, metric)
 	}
@@ -126,7 +119,6 @@ func (NvdimmCollector) GetMetricTypes(cfg plugin.Config) ([]plugin.Metric, error
 			Namespace:   plugin.NewNamespace("intel", "nvdimm", "pool").AddDynamicElement("PoolID", "Pool UID").AddStaticElement(name),
 			Description: "dynamic Pool metric: " + name,
 			Unit:        label.unit,
-			Version:     1,
 		}
 		metrics = append(metrics, metric)
 	}
@@ -136,7 +128,6 @@ func (NvdimmCollector) GetMetricTypes(cfg plugin.Config) ([]plugin.Metric, error
 			Namespace:   plugin.NewNamespace("intel", "nvdimm", "interleave_set").AddDynamicElement("InterleaveID", "Interleave UID").AddStaticElement(name),
 			Description: "dynamic Interleave_set metric: " + name,
 			Unit:        label.unit,
-			Version:     1,
 		}
 		metrics = append(metrics, metric)
 	}
@@ -146,7 +137,6 @@ func (NvdimmCollector) GetMetricTypes(cfg plugin.Config) ([]plugin.Metric, error
 			Namespace:   plugin.NewNamespace("intel", "nvdimm", "namespace").AddDynamicElement("NamespaceID", "Namespace UID").AddStaticElement(name),
 			Description: "dynamic Namespace metric: " + name,
 			Unit:        label.unit,
-			Version:     1,
 		}
 		metrics = append(metrics, metric)
 	}

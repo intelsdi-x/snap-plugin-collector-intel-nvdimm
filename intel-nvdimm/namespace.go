@@ -20,15 +20,16 @@ limitations under the License.
 package nvdimm
 
 import (
-	"fmt"
-	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
 	"unsafe"
+	
+	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
+	
+    log "github.com/sirupsen/logrus"
 )
 
 // #cgo LDFLAGS: -L/lib64 -lixpdimm
 // #include <nvm_management.h>
 // #include <nvm_types.h>
-// #include <nvm_context.h>
 // void nvmGetNamespaceDetails(struct namespace_details *p_namespace, struct namespace_discovery *p_discovery) {
 //	char *something = &p_discovery->namespace_uid[0];
 //	//fprintf(stderr, "ID: %s\n", something);
@@ -73,11 +74,10 @@ type Namespace struct {
 }
 
 func (p *Namespace) DiscoveryNamespace() {
-	//C.nvm_create_context()
 	p.AmountNamespace = C.nvm_get_namespace_count()
-
 	if p.AmountNamespace <= 0 {
-		fmt.Printf("Error: not found namespace\n")
+	    logError(int(p.AmountNamespace))
+		log.Error("No namespace found")
 	} else {
 		p.NamespaceDiscovery = make([]C.struct_namespace_discovery, p.AmountNamespace)
 		arrayDiscovery_ptr := (*C.struct_namespace_discovery)(unsafe.Pointer(&p.NamespaceDiscovery[0]))
@@ -90,37 +90,27 @@ func (p *Namespace) DiscoveryNamespace() {
 }
 
 func (nse *Namespace) getNamespaceMetric(nss []plugin.Namespace) []plugin.Metric {
-
-	aN := int(nse.AmountNamespace)
+//	aN := int(nse.AmountNamespace)
 	metric := plugin.Metric{}
 	metrics := []plugin.Metric{}
 
 	for _, ns := range nss {
 		metricName := ns.Element(len(ns) - 1).Value
-		//For all uid
 		if ns[3].Value == "*" {
-			for i := 0; i < aN; i++ {
-
-				newNS := make([]plugin.NamespaceElement, len(ns))
-				copy(newNS, ns)
-				newNS[3].Value = C.GoString(&nse.NamespaceDetails[i].pool_uid[0])
+			for i, ns_details := range nse.NamespaceDetails {
+				newNS := plugin.CopyNamespace(ns)
+				newNS[3].Value = C.GoString(&ns_details.pool_uid[0])
 
 				metric = getValueOfPropertyNamespace(nse, i, metricName, newNS)
-				fmt.Println(metric.Namespace)
-				fmt.Println(metric.Data)
 				metrics = append(metrics, metric)
 			}
 
 		} else { //For specific uid
-			newNS := make([]plugin.NamespaceElement, len(ns))
-			copy(newNS, ns)
-
+            newNS := plugin.CopyNamespace(ns)
 			//Check where in ArrayPools is requested UID
-			for i := 0; i < aN; i++ {
-				if ns[3].Value == C.GoString(&nse.NamespaceDetails[i].pool_uid[0]) {
+            for i, ns_details := range nse.NamespaceDetails {
+				if ns[3].Value == C.GoString(&ns_details.pool_uid[0]) {
 					metric = getValueOfPropertyNamespace(nse, i, metricName, newNS)
-					fmt.Println(metric.Namespace)
-					fmt.Println(metric.Data)
 					metrics = append(metrics, metric)
 				}
 			}
@@ -181,7 +171,7 @@ func getValueOfPropertyNamespace(nse *Namespace, i int, metricName string, ns []
 		}
 		return metric
 	default:
-		fmt.Println("No exists metric")
+		log.Debug("No exists metric")
 		metric := plugin.Metric{}
 		return metric
 	}

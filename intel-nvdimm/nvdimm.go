@@ -20,16 +20,17 @@ limitations under the License.
 package nvdimm
 
 import (
-	"fmt"
-	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
-	"strconv"
+    "strconv"
 	"unsafe"
+
+	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
+	
+	log "github.com/sirupsen/logrus"
 )
 
 // #cgo LDFLAGS: -L/lib64 -lixpdimm
 // #include <nvm_management.h>
 // #include <nvm_types.h>
-// #include <nvm_context.h>
 // int getSensorType(struct device_details dev_details, int i) {
 //     return (int)dev_details.sensors[i].type;
 // }
@@ -52,7 +53,6 @@ import (
 import "C"
 
 type Nvdimm struct {
-	stats                  map[string]map[string]interface{}
 	Memory_topology_count  C.int
 	Device_discovery_count C.int
 	Memory_topology        []C.struct_memory_topology
@@ -171,57 +171,43 @@ var nvdimmLabels = map[string]label{
 	},
 }
 
-func (nc *NvdimmCollector) DiscoverDevices() {
+func (nc *NvdimmCollector) DiscoverDevices() int {
 	nc.Memory_topology_count = C.nvm_get_memory_topology_count()
-	fmt.Print(nc.Memory_topology_count)
 	if nc.Memory_topology_count < 0 {
-		fmt.Printf("Error\n")
+    	logError(int(nc.Memory_topology_count))
+    	return int(nc.Memory_topology_count)
 	} else {
 		nc.Memory_topology = make([]C.struct_memory_topology, nc.Memory_topology_count) // Allocate
 		memory_topology_ptr := (*C.struct_memory_topology)(unsafe.Pointer(&nc.Memory_topology[0]))
 		C.nvm_get_memory_topology(memory_topology_ptr, C.NVM_UINT8(nc.Memory_topology_count))
-
 		nc.Device_discovery_count = C.nvm_get_device_count()
-		if nc.Device_discovery_count == C.NVM_ERR_INVALIDPERMISSIONS {
-			fmt.Printf("Invalid permisions\n")
-		} else {
-			nc.Device_array = make([]C.struct_device_discovery, nc.Device_discovery_count)
+		if nc.Device_discovery_count > 0 {
+		    nc.Device_array = make([]C.struct_device_discovery, nc.Device_discovery_count)
 			nc.Device_details = make([]C.struct_device_details, nc.Device_discovery_count)
 			device_array_ptr := (*C.struct_device_discovery)(unsafe.Pointer(&nc.Device_array[0]))
 			C.nvm_get_devices(device_array_ptr, C.NVM_UINT8(nc.Device_discovery_count))
-
-			//			var i int = 0
-			/*			for _, elem := range nc.Device_array {
-						//fmt.Printf("uid=%d\n", elem.uid)
-						C.nvm_get_device_details(&elem.uid[0], &nc.Device_details[i])
-						i++
-					}*/
-
+			
 			for i := 0; i < int(nc.Device_discovery_count); i++ {
 				C.nvm_get_device_details(&nc.Device_array[i].uid[0], &nc.Device_details[i])
 			}
+			log.Debug("Discover process finished, discovered %d devices!", int(nc.Device_discovery_count))
+		} else {
+            logError(int(nc.Device_discovery_count))
+		    return int(nc.Device_discovery_count)
 		}
 	}
-	fmt.Printf("Discover process finished, discovered %d devices!\n", int(nc.Device_discovery_count))
-	//for _, dev := range nc.Device_details {
-	fmt.Printf("PhysicalID: %d\n", uint16(nc.Device_details[0].discovery.physical_id))
-	fmt.Printf("PhysicalID: %d\n", uint16(nc.Device_details[1].discovery.physical_id))
-	//}
+	return 0;
 }
 
 func (nc *NvdimmCollector) GetNvdimmMetrics(namespaces []plugin.Namespace) []plugin.Metric {
-	var results []plugin.Metric //:= make([]plugin.Metric, len(namespaces)*int(nc.Device_discovery_count))
+	var results []plugin.Metric
+	if nc.Memory_topology_count <= 0 {
+	    return results;
+	}
 	for _, namespace := range namespaces {
-		fmt.Println("Processing namespace: ", namespace.String())
 		metricName := namespace[len(namespace)-1].Value // e.g. "capacity"
-		//        if namespace[3].Value == "*" {
-		i := 0
 		var met plugin.Metric
-		for _, elem := range nc.Device_array {
-			fmt.Printf("Preparing metrics for phys_id: %d\n", uint16(elem.physical_id))
-			//                var data
-			//				fmt.Printf("uid=%d\n", elem.uid)
-			//				C.nvm_get_device_details(&elem.uid[0], &nc.Device_details[i])
+		for i, elem := range nc.Device_array {
 			switch metricName {
 			case "device_capacity":
 				met = plugin.Metric{
@@ -230,7 +216,6 @@ func (nc *NvdimmCollector) GetNvdimmMetrics(namespaces []plugin.Namespace) []plu
 						metricName),
 					Data: uint64(elem.capacity),
 				}
-				fmt.Println("Namespace ", met.Namespace.String())
 			case "interleave_set_id":
 				// TODO
 				met = plugin.Metric{
@@ -419,36 +404,13 @@ func (nc *NvdimmCollector) GetNvdimmMetrics(namespaces []plugin.Namespace) []plu
 				}
 			}
 			if namespace[3].Value == "*" {
-				fmt.Println("Dynamic namespace")
 				results = append(results, met)
 			} else {
 				if namespace[3].Value == strconv.Itoa(int(elem.physical_id)) {
 					results = append(results, met)
 				}
 			}
-			i++
 		}
 	}
 	return results
-}
-
-func convertSensorUnits(unit int) string {
-	var unit_name string
-	switch unit {
-	case 1: // UNIT_COUNT
-		unit_name = ""
-	case 2: // UNIT_CELSIUS
-		unit_name = "C"
-	case 21: // UNIT_SECONDS
-		unit_name = "s"
-	case 22: // UNIT_MINUTES
-		unit_name = "m"
-	case 23: // UNIT_HOURS
-		unit_name = "h"
-	case 39: // UNIT_CYCLES
-		unit_name = ""
-	case 65: // UNIT_PERCENT
-		unit_name = "%"
-	}
-	return unit_name
 }
