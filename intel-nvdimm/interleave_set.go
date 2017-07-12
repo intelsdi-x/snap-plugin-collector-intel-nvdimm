@@ -73,9 +73,9 @@ func (p *Pool) getInterleavesetMetric(nss []plugin.Namespace) []plugin.Metric {
 				metrics = append(metrics, metric)
 			}
 		} else { //For specific uid
-            newNS := plugin.CopyNamespace(ns)
+			newNS := plugin.CopyNamespace(ns)
 			//Check where in ArrayPools is requested UID
-            for i, pool := range p.ArrayPools {
+			for i, pool := range p.ArrayPools {
 				if ns[3].Value == C.GoString(&pool.pool_uid[0]) {
 					metric = p.getInterleavesetValueOfProperty(i, metricName, newNS)
 					metrics = append(metrics, metric)

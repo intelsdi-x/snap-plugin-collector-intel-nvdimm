@@ -20,11 +20,11 @@ limitations under the License.
 package nvdimm
 
 import (
-    "strconv"
+	"strconv"
 	"unsafe"
 
 	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
-	
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -174,35 +174,35 @@ var nvdimmLabels = map[string]label{
 func (nc *NvdimmCollector) DiscoverDevices() int {
 	nc.Memory_topology_count = C.nvm_get_memory_topology_count()
 	if nc.Memory_topology_count < 0 {
-    	logError(int(nc.Memory_topology_count))
-    	return int(nc.Memory_topology_count)
+		logError(int(nc.Memory_topology_count))
+		return int(nc.Memory_topology_count)
 	} else {
 		nc.Memory_topology = make([]C.struct_memory_topology, nc.Memory_topology_count) // Allocate
 		memory_topology_ptr := (*C.struct_memory_topology)(unsafe.Pointer(&nc.Memory_topology[0]))
 		C.nvm_get_memory_topology(memory_topology_ptr, C.NVM_UINT8(nc.Memory_topology_count))
 		nc.Device_discovery_count = C.nvm_get_device_count()
 		if nc.Device_discovery_count > 0 {
-		    nc.Device_array = make([]C.struct_device_discovery, nc.Device_discovery_count)
+			nc.Device_array = make([]C.struct_device_discovery, nc.Device_discovery_count)
 			nc.Device_details = make([]C.struct_device_details, nc.Device_discovery_count)
 			device_array_ptr := (*C.struct_device_discovery)(unsafe.Pointer(&nc.Device_array[0]))
 			C.nvm_get_devices(device_array_ptr, C.NVM_UINT8(nc.Device_discovery_count))
-			
+
 			for i := 0; i < int(nc.Device_discovery_count); i++ {
 				C.nvm_get_device_details(&nc.Device_array[i].uid[0], &nc.Device_details[i])
 			}
 			log.Debug("Discover process finished, discovered %d devices!", int(nc.Device_discovery_count))
 		} else {
-            logError(int(nc.Device_discovery_count))
-		    return int(nc.Device_discovery_count)
+			logError(int(nc.Device_discovery_count))
+			return int(nc.Device_discovery_count)
 		}
 	}
-	return 0;
+	return 0
 }
 
 func (nc *NvdimmCollector) GetNvdimmMetrics(namespaces []plugin.Namespace) []plugin.Metric {
 	var results []plugin.Metric
 	if nc.Memory_topology_count <= 0 {
-	    return results;
+		return results
 	}
 	for _, namespace := range namespaces {
 		metricName := namespace[len(namespace)-1].Value // e.g. "capacity"

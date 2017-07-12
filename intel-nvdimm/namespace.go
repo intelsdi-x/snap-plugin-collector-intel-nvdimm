@@ -21,10 +21,10 @@ package nvdimm
 
 import (
 	"unsafe"
-	
+
 	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
-	
-    log "github.com/sirupsen/logrus"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // #cgo LDFLAGS: -L/lib64 -lixpdimm
@@ -76,7 +76,7 @@ type Namespace struct {
 func (p *Namespace) DiscoveryNamespace() {
 	p.AmountNamespace = C.nvm_get_namespace_count()
 	if p.AmountNamespace <= 0 {
-	    logError(int(p.AmountNamespace))
+		logError(int(p.AmountNamespace))
 		log.Error("No namespace found")
 	} else {
 		p.NamespaceDiscovery = make([]C.struct_namespace_discovery, p.AmountNamespace)
@@ -90,7 +90,6 @@ func (p *Namespace) DiscoveryNamespace() {
 }
 
 func (nse *Namespace) getNamespaceMetric(nss []plugin.Namespace) []plugin.Metric {
-//	aN := int(nse.AmountNamespace)
 	metric := plugin.Metric{}
 	metrics := []plugin.Metric{}
 
@@ -106,9 +105,9 @@ func (nse *Namespace) getNamespaceMetric(nss []plugin.Namespace) []plugin.Metric
 			}
 
 		} else { //For specific uid
-            newNS := plugin.CopyNamespace(ns)
+			newNS := plugin.CopyNamespace(ns)
 			//Check where in ArrayPools is requested UID
-            for i, ns_details := range nse.NamespaceDetails {
+			for i, ns_details := range nse.NamespaceDetails {
 				if ns[3].Value == C.GoString(&ns_details.pool_uid[0]) {
 					metric = getValueOfPropertyNamespace(nse, i, metricName, newNS)
 					metrics = append(metrics, metric)

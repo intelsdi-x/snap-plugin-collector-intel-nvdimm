@@ -57,10 +57,10 @@ func NewCollector() *NvdimmCollector {
 }
 
 func (nc *NvdimmCollector) CollectMetrics(mts []plugin.Metric) ([]plugin.Metric, error) {
-    metrics     := []plugin.Metric{}
-	nvdimm_ns   := []plugin.Namespace{}
-	pool_ns     := []plugin.Namespace{}
-	namespace_ns      := []plugin.Namespace{}
+	metrics := []plugin.Metric{}
+	nvdimm_ns := []plugin.Namespace{}
+	pool_ns := []plugin.Namespace{}
+	namespace_ns := []plugin.Namespace{}
 	interleave_set_ns := []plugin.Namespace{}
 
 	// Insert metrics that will be collected
@@ -79,21 +79,21 @@ func (nc *NvdimmCollector) CollectMetrics(mts []plugin.Metric) ([]plugin.Metric,
 	}
 
 	if len(nvdimm_ns) > 0 {
-	nc.DiscoverDevices()
-	    nvmet := nc.GetNvdimmMetrics(nvdimm_ns)
-	    metrics = append(metrics, nvmet...)
+		nc.DiscoverDevices()
+		nvmet := nc.GetNvdimmMetrics(nvdimm_ns)
+		metrics = append(metrics, nvmet...)
 	}
 	if len(pool_ns) > 0 || len(interleave_set_ns) > 0 {
-	    nc.DiscoveryPool()
-	    nvmet2 := nc.getPoolMetric(pool_ns)
-	    nvmet3 := nc.getInterleavesetMetric(interleave_set_ns)
-	    metrics = append(metrics, nvmet2...)
-	    metrics = append(metrics, nvmet3...)
+		nc.DiscoveryPool()
+		nvmet2 := nc.getPoolMetric(pool_ns)
+		nvmet3 := nc.getInterleavesetMetric(interleave_set_ns)
+		metrics = append(metrics, nvmet2...)
+		metrics = append(metrics, nvmet3...)
 	}
 	if len(pool_ns) > 0 || len(interleave_set_ns) > 0 {
 		nc.DiscoveryNamespace()
-	    nvmet4 := nc.getNamespaceMetric(namespace_ns)
-	metrics = append(metrics, nvmet4...)
+		nvmet4 := nc.getNamespaceMetric(namespace_ns)
+		metrics = append(metrics, nvmet4...)
 	}
 	return metrics, nil
 }

@@ -21,9 +21,9 @@ package nvdimm
 
 import (
 	"unsafe"
-	
+
 	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
-	
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -85,15 +85,15 @@ func (p *Pool) getPoolMetric(nss []plugin.Namespace) []plugin.Metric {
 	for _, ns := range nss {
 		metricName := ns.Element(len(ns) - 1).Value
 		if ns[3].Value == "*" { // For all uid
-            for i, array := range p.ArrayPools {
-                newNS := plugin.CopyNamespace(ns)
+			for i, array := range p.ArrayPools {
+				newNS := plugin.CopyNamespace(ns)
 				newNS[3].Value = C.GoString(&array.pool_uid[0])
 
 				metric = p.getPoolValueOfProperty(i, metricName, newNS)
 				metrics = append(metrics, metric)
 			}
 		} else { // For specific uid
-            newNS := plugin.CopyNamespace(ns)
+			newNS := plugin.CopyNamespace(ns)
 			//Check where in ArrayPools is requested UID
 			for i, array := range p.ArrayPools {
 				if ns[3].Value == C.GoString(&array.pool_uid[0]) {
