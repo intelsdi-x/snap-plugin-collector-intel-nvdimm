@@ -20,7 +20,7 @@ limitations under the License.
 package nvdimm
 
 import (
-	log "github.com/sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 )
 
 // #cgo LDFLAGS: -L/lib64 -lixpdimm

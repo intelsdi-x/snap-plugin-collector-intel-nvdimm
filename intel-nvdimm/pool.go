@@ -24,7 +24,7 @@ import (
 
 	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
 
-	log "github.com/sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 )
 
 // #cgo LDFLAGS: -L/lib64 -lixpdimm
