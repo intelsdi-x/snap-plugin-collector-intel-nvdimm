@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "schedule": {
+  	"type": "simple",
+  	"interval": "5s"
+ },
+  "workflow": {
+  	"collect": {
+		"metrics": {
+			"/intel/nvdimm/nvdimm/*/device_capacity": {}
+		}
+  }
+ }
+}
