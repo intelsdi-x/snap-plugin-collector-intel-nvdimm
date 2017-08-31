@@ -1,0 +1,11 @@
+package: github.com/intelsdi-x/snap-plugin-collector-intel-nvdimm
+import:
+- package: github.com/Sirupsen/logrus
+  version: ^1.0.3
+- package: github.com/intelsdi-x/snap-plugin-lib-go
+  subpackages:
+  - v1/plugin
+- package: golang.org/x/tools
+  subpackages:
+  - cmd/stringer
+
