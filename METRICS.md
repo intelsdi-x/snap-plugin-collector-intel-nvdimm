@@ -6,7 +6,13 @@ This plugin has the ability to gather the following metrics:
 Metric Name | Unit | Description
 ----------- | ---- | -------------------
 
-intel/nvdimm/pool/*/capacity | UINT64 | The total user-visible capacity of the pool in bytes. If the pool is mirrored, the user-visible capacity is less than the capacity occupied on the NVDIMMs
+/intel/nvdimm/pool/*/capacity | UINT64 | The total user-visible capacity of the pool in bytes. If the pool is mirrored, the user-visible capacity is less than the capacity occupied on the NVDIMMs
+
+
+
+
+
+
 intel/nvdimm/pool/*/free_capacity | UINT64 | The capacity in bytes that is not currently being used in a namespace
 intel/nvdimm/pool/*/socket_id | INT16 | The processor socket identifer where the pool resides. -1 for a system level pool
 intel/nvdimm/pool/*/nvdimm_count | UINT16 | The number of underlying NVDIMMs on which the pool capacity reside
