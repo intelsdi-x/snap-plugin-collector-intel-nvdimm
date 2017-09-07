@@ -24,7 +24,7 @@ This plugin is able to gather metrics from Intel NVDIMMs related infrastructure.
 
 ### Operating systems
 All OSs currently supported by plugin:
-* Linux/amd64
+* Fedora (Server) 25 or higher
 
 ### Configuration and Usage
 * Set up the [SNAP framework](https://github.com/intelsdi-x/snap#getting-started)
