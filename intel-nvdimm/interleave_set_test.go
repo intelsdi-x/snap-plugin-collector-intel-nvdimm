@@ -22,34 +22,33 @@ package nvdimm
 import (
 	"testing"
 
-        "github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
+	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
 
-        . "github.com/smartystreets/goconvey/convey"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func Test_InterleaveLabels(t *testing.T) {
-        Convey("count interleave_set metrics", t, func() {
-                So(len(interleaveLabels), ShouldEqual, 6)
-        })
+	Convey("count interleave_set metrics", t, func() {
+		So(len(interleaveLabels), ShouldEqual, 6)
+	})
 }
 
 func Test_GetInterleavesetMetrics(t *testing.T) {
-        Convey("get interleave_set metrics", t, func() {
-                So(func() { NewCollector() }, ShouldNotPanic)
+	Convey("get interleave_set metrics", t, func() {
+		So(func() { NewCollector() }, ShouldNotPanic)
 
-                collector := NewCollector()
-                collector.DiscoveryPool()
-                So(int(collector.AmountPool), ShouldBeGreaterThan, 0)
+		collector := NewCollector()
+		collector.DiscoveryPool()
+		So(int(collector.AmountPool), ShouldBeGreaterThan, 0)
 
-                ns := []plugin.Namespace{}
-                for k, _ := range interleaveLabels {
-                        ns = append(ns, plugin.NewNamespace("intel", "nvdimm", "interleave_set").AddDynamicElement("DimmUID", "Device UID").AddStaticElement(k))
-                }
-                So(collector.getInterleavesetMetric(ns), ShouldNotBeNil)
+		ns := []plugin.Namespace{}
+		for k, _ := range interleaveLabels {
+			ns = append(ns, plugin.NewNamespace("intel", "nvdimm", "interleave_set").AddDynamicElement("DimmUID", "Device UID").AddStaticElement(k))
+		}
+		So(collector.getInterleavesetMetric(ns), ShouldNotBeNil)
 
 		unknown_metric := []plugin.Namespace{}
-                unknown_metric = append(unknown_metric, plugin.NewNamespace("intel", "nvdimm", "interleave_set").AddDynamicElement("DimmUID", "Device UID").AddStaticElement("unknown_metric"))
-                So(collector.getInterleavesetMetric(unknown_metric), ShouldContain, plugin.Metric{})
-        })
+		unknown_metric = append(unknown_metric, plugin.NewNamespace("intel", "nvdimm", "interleave_set").AddDynamicElement("DimmUID", "Device UID").AddStaticElement("unknown_metric"))
+		So(collector.getInterleavesetMetric(unknown_metric), ShouldContain, plugin.Metric{})
+	})
 }
-

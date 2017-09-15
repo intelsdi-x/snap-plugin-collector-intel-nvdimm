@@ -26,6 +26,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 )
+
 func Test_DiscoverPool(t *testing.T) {
 	Convey("discover pool and get metrics", t, func() {
 		pool := Pool{}
@@ -34,8 +35,8 @@ func Test_DiscoverPool(t *testing.T) {
 
 		ns := []plugin.Namespace{}
 		for k, _ := range poolLabels {
-                        ns = append(ns, plugin.NewNamespace("intel", "nvdimm", "pool").AddDynamicElement("DimmUID", "Device UID").AddStaticElement(k))
-                }
+			ns = append(ns, plugin.NewNamespace("intel", "nvdimm", "pool").AddDynamicElement("DimmUID", "Device UID").AddStaticElement(k))
+		}
 		So(len(ns), ShouldEqual, len(poolLabels))
 
 		targetCount := len(poolLabels) * int(pool.AmountPool)
