@@ -35,8 +35,8 @@ func Test_DiscoverNamespace(t *testing.T) {
 
 		ns := []plugin.Namespace{}
 		for k, _ := range namespaceLabels {
-                        ns = append(ns, plugin.NewNamespace("intel", "nvdimm", "namespace").AddDynamicElement("DimmUID", "Device UID").AddStaticElement(k))
-                }
+			ns = append(ns, plugin.NewNamespace("intel", "nvdimm", "namespace").AddDynamicElement("DimmUID", "Device UID").AddStaticElement(k))
+		}
 		So(len(ns), ShouldEqual, len(namespaceLabels))
 
 		targetCount := len(namespaceLabels) * int(namespace.AmountNamespace)

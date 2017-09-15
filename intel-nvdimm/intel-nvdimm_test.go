@@ -68,25 +68,25 @@ func Test_GetNvdimmMetrics(t *testing.T) {
 func Test_CollectMetrics(t *testing.T) {
 	Convey("collect metrics", t, func() {
 		metrics := []plugin.Metric{}
-	        nvdimm_ns := []plugin.Namespace{}
-	        pool_ns := []plugin.Namespace{}
+		nvdimm_ns := []plugin.Namespace{}
+		pool_ns := []plugin.Namespace{}
 		namespace_ns := []plugin.Namespace{}
-	        interleave_set_ns := []plugin.Namespace{}
+		interleave_set_ns := []plugin.Namespace{}
 
 		nc := NewCollector()
 		So(nc, ShouldNotBeNil)
 
 		nc.DiscoverDevices()
-                nvmet := nc.GetNvdimmMetrics(nvdimm_ns)
-                metrics = append(metrics, nvmet...)
+		nvmet := nc.GetNvdimmMetrics(nvdimm_ns)
+		metrics = append(metrics, nvmet...)
 		nc.DiscoveryPool()
-                nvmet2 := nc.getPoolMetric(pool_ns)
-                nvmet3 := nc.getInterleavesetMetric(interleave_set_ns)
-                metrics = append(metrics, nvmet2...)
-                metrics = append(metrics, nvmet3...)
+		nvmet2 := nc.getPoolMetric(pool_ns)
+		nvmet3 := nc.getInterleavesetMetric(interleave_set_ns)
+		metrics = append(metrics, nvmet2...)
+		metrics = append(metrics, nvmet3...)
 		nc.DiscoveryNamespace()
-                nvmet4 := nc.getNamespaceMetric(namespace_ns)
-                metrics = append(metrics, nvmet4...)
+		nvmet4 := nc.getNamespaceMetric(namespace_ns)
+		metrics = append(metrics, nvmet4...)
 
 		returned_metrics, _ := nc.CollectMetrics(metrics)
 		So(returned_metrics, ShouldNotEqual, []plugin.Metric{})
@@ -96,16 +96,16 @@ func Test_CollectMetrics(t *testing.T) {
 
 func Test_GetMetrics(t *testing.T) {
 	nc := NewCollector()
-	Convey("get collector", t, func () {
-                So(nc, ShouldNotBeNil)
+	Convey("get collector", t, func() {
+		So(nc, ShouldNotBeNil)
 	})
 	config_policy, _ := nc.GetConfigPolicy()
-        Convey("get config policy", t, func () {
+	Convey("get config policy", t, func() {
 		So(config_policy, ShouldNotBeNil)
 	})
 
 	plugin_config := plugin.NewConfig()
-	maxLabels := len(nvdimmLabels)+len(namespaceLabels)+len(poolLabels)+len(interleaveLabels)
+	maxLabels := len(nvdimmLabels) + len(namespaceLabels) + len(poolLabels) + len(interleaveLabels)
 	metricsTypes, _ := nc.GetMetricTypes(plugin_config)
 
 	Convey("get metric types", t, func() {
@@ -113,7 +113,7 @@ func Test_GetMetrics(t *testing.T) {
 	})
 
 	metrics, _ := nc.CollectMetrics(metricsTypes)
-	maxMetrics := len(nvdimmLabels)*int(nc.Nvdimm.Device_discovery_count)+len(poolLabels)*int(nc.Pool.AmountPool)+len(namespaceLabels)*int(nc.Namespace.AmountNamespace)+len(interleaveLabels)
+	maxMetrics := len(nvdimmLabels)*int(nc.Nvdimm.Device_discovery_count) + len(poolLabels)*int(nc.Pool.AmountPool) + len(namespaceLabels)*int(nc.Namespace.AmountNamespace) + len(interleaveLabels)
 	Convey("get collect metrics", t, func() {
 		So(len(metrics), ShouldEqual, maxMetrics)
 	})
